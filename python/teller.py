@@ -104,10 +104,15 @@ def _parse_args():
 
     args = parser.parse_args()
 
+    cert_path_env = os.environ.get('TELLER_CERT_PATH')
+    key_path_env = os.environ.get('TELLER_KEY_PATH')
+    
     needs_cert = args.environment in ['development', 'production']
-    has_cert = args.cert and args.cert_key
-    if needs_cert and not has_cert:
-        parser.error('--cert and --cert-key are required when --environment is not sandbox')
+    has_cert_args = args.cert and args.cert_key
+    has_cert_env = cert_path_env and key_path_env
+    
+    if needs_cert and not (has_cert_args or has_cert_env):
+        parser.error('--cert and --cert-key are required when --environment is not sandbox, or set TELLER_CERT_PATH and TELLER_KEY_PATH environment variables')
 
     return args
 
