@@ -98,23 +98,50 @@ def _parse_args():
             choices=['sandbox', 'development', 'production'],
             help='API environment to target')
     parser.add_argument('--cert', type=str,
-            help='path to the TLS certificate')
+            help='path to the TLS certificate (deprecated: use TELLER_CERT_PATH env var)')
     parser.add_argument('--cert-key', type=str,
-            help='path to the TLS certificate private key')
+            help='path to the TLS certificate private key (deprecated: use TELLER_KEY_PATH env var)')
 
     args = parser.parse_args()
 
+    cert_path_env = os.environ.get('TELLER_CERT_PATH')
+    key_path_env = os.environ.get('TELLER_KEY_PATH')
+    
     needs_cert = args.environment in ['development', 'production']
-    has_cert = args.cert and args.cert_key
-    if needs_cert and not has_cert:
-        parser.error('--cert and --cert-key are required when --environment is not sandbox')
+    has_cert_args = args.cert and args.cert_key
+    has_cert_env = cert_path_env and key_path_env
+    
+    if needs_cert and not (has_cert_args or has_cert_env):
+        parser.error('--cert and --cert-key are required when --environment is not sandbox, or set TELLER_CERT_PATH and TELLER_KEY_PATH environment variables')
 
     return args
 
 
 def main():
     args = _parse_args()
-    cert = (args.cert, args.cert_key)
+    
+    cert_path = os.environ.get('TELLER_CERT_PATH') or args.cert
+    key_path = os.environ.get('TELLER_KEY_PATH') or args.cert_key
+    
+    if args.environment in ['development', 'production']:
+        if not cert_path or not key_path:
+            print("ERROR: TELLER_CERT_PATH and TELLER_KEY_PATH environment variables must be set for development/production environments")
+            print("Example:")
+            print("  export TELLER_CERT_PATH=/path/to/cert.pem")
+            print("  export TELLER_KEY_PATH=/path/to/private_key.pem")
+            return 1
+        
+        if not os.path.exists(cert_path):
+            print(f"ERROR: Certificate file not found: {cert_path}")
+            return 1
+        if not os.path.exists(key_path):
+            print(f"ERROR: Private key file not found: {key_path}")
+            return 1
+        
+        print(f"Using certificate: {cert_path}")
+        print(f"Using private key: {key_path}")
+    
+    cert = (cert_path, key_path) if cert_path and key_path else None
     client = TellerClient(cert)
 
     print("Starting up ...")
