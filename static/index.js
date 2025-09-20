@@ -1,5 +1,5 @@
-const APPLICATION_ID = '';
-const ENVIRONMENT = 'sandbox';
+const APPLICATION_ID = 'app_piia1rvp3d4eo7v4s4000';
+const ENVIRONMENT = 'development';
 const BASE_URL = 'http://localhost:8001/api';
 
 class TellerStore {
@@ -766,9 +766,12 @@ document.addEventListener('DOMContentLoaded', function(event) {
   });
 
   const enrollment = store.getEnrollment();
-  if (enrollment) {
-    enrollmentHandler.onEnrollment(enrollment);
-    userHandler.onEnrollment(enrollment);
-    statusHandler.onEnrollment(enrollment);
+  if (enrollment && enrollment.accessToken) {
+    // If an enrollment with an access token exists in storage,
+    // automatically fetch accounts and update the UI.
+    client.accessToken = enrollment.accessToken;
+    enrollmentHandler.onEnrollment(enrollment); // This will now fetch accounts
+    userHandler.onEnrollment(enrollment); // This will display user/token
+    statusHandler.onEnrollment(enrollment); // This will set button to "Disconnect"
   }
 })

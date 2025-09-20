@@ -4,3 +4,10 @@
 # Python cache
 __pycache__/
 *.pyc
+
+# Certificates and private keys
+*.pem
+*.key
+
+# Patches
+*.patch
