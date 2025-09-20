@@ -13,6 +13,27 @@ $ ./static.sh
 
 This will start a simple HTTP server listening on `:8000`. You can now visit [localhost:8000](http://localhost:8000) in your browser and start using the application.
 
+### Certificate Configuration
+
+For `development` and `production` environments, you need to configure TLS certificates for mTLS authentication with the Teller API. Set the following environment variables:
+
+- `TELLER_CERT_PATH`: Absolute path to your TLS certificate file (e.g., `/path/to/cert.pem`)
+- `TELLER_KEY_PATH`: Absolute path to your private key file (e.g., `/path/to/private_key.pem`)
+
+Example usage:
+```bash
+export TELLER_CERT_PATH=/mnt/d/Projects/devin_teller/python/cert.pem
+export TELLER_KEY_PATH=/mnt/d/Projects/devin_teller/python/private_key.pem
+
+# Start backend from project root
+cd /path/to/devin_teller
+python python/teller.py --environment development
+```
+
+You can manage your certificates on the [Teller developer dashboard](https://teller.io/settings/certificates).
+
+**Note:** Certificate files (*.pem, *.key) are excluded from version control for security.
+
 ## Usage
 
 Use the *Connect* button on the top-right of the screen to enroll a new user. Upon completion, you will see the list of bank accounts on the page. You can interact with them by requesting their details, balances and transactions from Teller.
