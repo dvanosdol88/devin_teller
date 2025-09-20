@@ -77,10 +77,15 @@ class AccountsResource:
 
     def _proxy(self, req, resp, fun):
         user_client = self._client.for_user(req.auth)
+        print(f"Making request with access token: {req.auth[:10] if req.auth else 'None'}...")
         teller_response = fun(user_client)
-
+        
+        print(f"Teller API response status: {teller_response.status_code}")
         if teller_response.content:
-          resp.media = teller_response.json()
+            print(f"Response content length: {len(teller_response.content)}")
+            resp.media = teller_response.json()
+        else:
+            print("No response content")
 
         resp.status = falcon.code_to_http_status(teller_response.status_code)
 

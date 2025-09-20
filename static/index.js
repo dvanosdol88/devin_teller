@@ -142,13 +142,27 @@ class EnrollmentHandler {
 
     this.client.getAccountDetails(account)
       .then(function(response) {
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
         return response.json();
       })
       .then(function(details) {
+        console.log('Details received:', details);
         container.prepend(template.render(details));
         container.prepend(header);
 
         spinner.hide();
+      })
+      .catch(function(error) {
+        console.error('Error fetching details:', error);
+        spinner.hide();
+        
+        const errorDiv = document.createElement('div');
+        errorDiv.className = 'bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4';
+        errorDiv.textContent = `Failed to load details: ${error.message}`;
+        container.prepend(errorDiv);
+        container.prepend(header);
       });
   }
 
@@ -166,13 +180,27 @@ class EnrollmentHandler {
 
     this.client.getAccountBalances(account)
       .then(function(response) {
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
         return response.json();
       })
       .then(function(balances) {
+        console.log('Balances received:', balances);
         container.prepend(template.render(balances));
         container.prepend(header);
 
         spinner.hide();
+      })
+      .catch(function(error) {
+        console.error('Error fetching balances:', error);
+        spinner.hide();
+        
+        const errorDiv = document.createElement('div');
+        errorDiv.className = 'bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4';
+        errorDiv.textContent = `Failed to load balances: ${error.message}`;
+        container.prepend(errorDiv);
+        container.prepend(header);
       });
   }
 
@@ -190,15 +218,29 @@ class EnrollmentHandler {
 
     this.client.listAccountTransactions(account)
       .then(function(response) {
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
         return response.json();
       })
       .then(function(transactions) {
+        console.log('Transactions received:', transactions);
         transactions.reverse().forEach(function(transaction) {
           container.prepend(template.render(transaction));
         });
 
         container.prepend(header);
         spinner.hide();
+      })
+      .catch(function(error) {
+        console.error('Error fetching transactions:', error);
+        spinner.hide();
+        
+        const errorDiv = document.createElement('div');
+        errorDiv.className = 'bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4';
+        errorDiv.textContent = `Failed to load transactions: ${error.message}`;
+        container.prepend(errorDiv);
+        container.prepend(header);
       });
   }
 
