@@ -61,34 +61,10 @@ class AccountsResource:
         self._proxy(req, resp, lambda client: client.get_account_details(account_id))
 
     def on_get_balances(self, req, resp, account_id):
-        def store_balances(client):
-            teller_response = client.get_account_balances(account_id)
-            if teller_response.status_code == 200:
-                try:
-                    from db import SessionLocal, init_db, add_balance_snapshot
-                    init_db()
-                    with SessionLocal() as s:
-                        add_balance_snapshot(s, account_id, teller_response.json())
-                        s.commit()
-                except Exception as e:
-                    print(f"Error storing balance snapshot: {e}")
-            return teller_response
-        self._proxy(req, resp, store_balances)
+        self._proxy(req, resp, lambda client: client.get_account_balances(account_id))
 
     def on_get_transactions(self, req, resp, account_id):
-        def store_transactions(client):
-            teller_response = client.list_account_transactions(account_id)
-            if teller_response.status_code == 200:
-                try:
-                    from db import SessionLocal, init_db, upsert_transactions
-                    init_db()
-                    with SessionLocal() as s:
-                        upsert_transactions(s, account_id, teller_response.json())
-                        s.commit()
-                except Exception as e:
-                    print(f"Error storing transactions: {e}")
-            return teller_response
-        self._proxy(req, resp, store_transactions)
+        self._proxy(req, resp, lambda client: client.list_account_transactions(account_id))
 
     def on_get_payees(self, req, resp, account_id, scheme):
         self._proxy(req, resp, lambda client: client.list_account_payees(account_id, scheme))
@@ -99,45 +75,12 @@ class AccountsResource:
     def on_post_payments(self, req, resp, account_id, scheme):
         self._proxy(req, resp, lambda client: client.create_account_payment(account_id, scheme, req.media))
 
-    def on_get_cached_transactions(self, req, resp, account_id):
-        try:
-            from db import SessionLocal, Transaction
-            limit = int(req.get_param('limit', default=100))
-            with SessionLocal() as s:
-                rows = (s.query(Transaction)
-                          .filter_by(account_id=account_id)
-                          .order_by(Transaction.date.desc())
-                          .limit(limit)
-                          .all())
-                resp.media = [r.raw for r in rows]
-        except Exception as e:
-            print(f"Error retrieving cached transactions: {e}")
-            resp.media = []
-
-    def on_get_cached_balances(self, req, resp, account_id):
-        try:
-            from db import SessionLocal, BalanceSnapshot
-            with SessionLocal() as s:
-                latest = (s.query(BalanceSnapshot)
-                           .filter_by(account_id=account_id)
-                           .order_by(BalanceSnapshot.as_of.desc())
-                           .first())
-                resp.media = latest.raw if latest else {}
-        except Exception as e:
-            print(f"Error retrieving cached balances: {e}")
-            resp.media = {}
-
     def _proxy(self, req, resp, fun):
         user_client = self._client.for_user(req.auth)
-        print(f"Making request with access token: {req.auth[:10] if req.auth else 'None'}...")
         teller_response = fun(user_client)
-        
-        print(f"Teller API response status: {teller_response.status_code}")
+
         if teller_response.content:
-            print(f"Response content length: {len(teller_response.content)}")
-            resp.media = teller_response.json()
-        else:
-            print("No response content")
+          resp.media = teller_response.json()
 
         resp.status = falcon.code_to_http_status(teller_response.status_code)
 
@@ -215,10 +158,6 @@ def main():
             suffix='payees')
     app.add_route('/api/accounts/{account_id}/payments/{scheme}', accounts,
             suffix='payments')
-    app.add_route('/api/db/accounts/{account_id}/transactions', accounts,
-            suffix='cached_transactions')
-    app.add_route('/api/db/accounts/{account_id}/balances', accounts,
-            suffix='cached_balances')
 
     port = os.getenv('PORT') or '8001'
 
