@@ -1,4 +1,8 @@
-# Teller Examples
+# WORKING VERSION Teller
+
+# DO NOT ALTER THIS WORKING COPY.  DEVELOPMENT SHOULD BE ON  https://github.com/dvanosdol88/devin_teller_storage
+
+## Working with Balances and Transactions being fetched successfully 9/21/25
 
 ## Introduction
 
@@ -39,3 +43,4 @@ You can manage your certificates on the [Teller developer dashboard](https://tel
 Use the *Connect* button on the top-right of the screen to enroll a new user. Upon completion, you will see the list of bank accounts on the page. You can interact with them by requesting their details, balances and transactions from Teller.
 
 The *User* specified on the right-hand side is the Teller identifier associated to the user whose accounts were enrolled. The *Access Token* authorizes your Teller application to access the user's account data. For more information you can read our online [documentation](https://teller.io/docs).
+
